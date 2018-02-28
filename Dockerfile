@@ -25,11 +25,31 @@ RUN yum localinstall -y jdk-8u161-linux-x64.rpm
 # Set environment variables
 ENV PATH $PATH:/opt/hadoop/bin
 ENV JAVA_HOME /usr/java/latest
-
+ENV HDP_VERSION 2.6.4.0-91
+ENV HADOOP_OPTS "-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 
 # Download configurations
 # WARNING: REPLACE BY REAL HOST
+
+# HDFS
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/HDFS/components/HDFS_CLIENT?format=client_config_tar -o hdfs-config.tar.gz
 RUN tar -xf hdfs-config.tar.gz
 RUN cp core-site.xml /opt/hadoop/etc/hadoop
 RUN cp hdfs-site.xml /opt/hadoop/etc/hadoop
+
+# YARN
+RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/YARN/components/YARN_CLIENT?format=client_config_tar -o yarn-config.tar.gz
+RUN tar -xf yarn-config.tar.gz
+RUN cp capacity-scheduler.xml /opt/hadoop/etc/hadoop
+RUN cp yarn-site.xml /opt/hadoop/etc/hadoop
+
+# MAPREDUCE2
+RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT?format=client_config_tar -o mapred-config.tar.gz
+RUN tar -xf mapred-config.tar.gz
+RUN cp mapred-site.xml /opt/hadoop/etc/hadoop
+
+
+
+COPY conf/slaves /opt/hadoop/etc/hadoop
+
+RUN rm -rf /tmp/*
