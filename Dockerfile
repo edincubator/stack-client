@@ -12,7 +12,6 @@ COPY conf/krb5.conf /etc/krb5.conf
 WORKDIR /tmp
 
 # Set environment variables
-ENV PATH $PATH:/opt/hadoop/bin:/opt/spark/bin
 ENV JAVA_HOME /usr/java/latest
 ENV HDP_VERSION 2.6.4.0-91
 ENV HADOOP_OPTS "-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
@@ -26,7 +25,7 @@ RUN wget https://archive.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3
 # JAVA
 RUN wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u161-b12/2f38c3b165be4555a1fa6e98c45e0808/jdk-8u161-linux-x64.rpm"
 
-# SPARK
+# SPARK2
 RUN wget http://mirror.nohup.it/apache/spark/spark-2.2.0/spark-2.2.0-bin-hadoop2.7.tgz
 
 # Install components
@@ -35,11 +34,11 @@ RUN tar -xf /tmp/hadoop-2.7.3.tar.gz
 RUN mv /tmp/hadoop-2.7.3 /opt/hadoop-2.7.3
 RUN ln -s /opt/hadoop-2.7.3/ /opt/hadoop
 
-# SPARK
+# SPARK2
 RUN tar -xf /tmp/spark-2.2.0-bin-hadoop2.7.tgz
 RUN mv /tmp/spark-2.2.0-bin-hadoop2.7 /opt/spark-2.2.0-bin-hadoop2.7
-RUN ln -s /opt/spark-2.2.0-bin-hadoop2.7 /opt/spark 
-COPY conf/java-opts /opt/spark/conf/java-opts
+RUN ln -s /opt/spark-2.2.0-bin-hadoop2.7 /opt/spark2
+COPY conf/java-opts /opt/spark2/conf/java-opts
 
 # JAVA
 RUN yum localinstall -y jdk-8u161-linux-x64.rpm
@@ -69,11 +68,15 @@ RUN cp mapred-site.xml /opt/hadoop/etc/hadoop
 # SPARK
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/SPARK2/components/SPARK2_CLIENT?format=client_config_tar -o spark-config.tar.gz
 RUN tar -xf spark-config.tar.gz
-RUN cp spark-defaults.conf /opt/spark/conf
+RUN cp spark-defaults.conf /opt/spark2/conf
 RUN wget http://central.maven.org/maven2/com/sun/jersey/jersey-bundle/1.9/jersey-bundle-1.9.jar
-RUN cp jersey-bundle-1.9.jar /opt/spark/jars
-RUN echo "spark.driver.extraJavaOptions=-Dhdp.version=$HDP_VERSION" >> /opt/spark/conf/spark-defaults.conf
+RUN cp jersey-bundle-1.9.jar /opt/spark2/jars
+RUN echo "spark.driver.extraJavaOptions=-Dhdp.version=$HDP_VERSION" >> /opt/spark2/conf/spark-defaults.conf
 
 COPY conf/slaves /opt/hadoop/etc/hadoop
+
+# Set PATH
+ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin
+
 
 RUN rm -rf /tmp/*
