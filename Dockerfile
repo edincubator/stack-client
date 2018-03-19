@@ -120,10 +120,16 @@ RUN wget http://central.maven.org/maven2/org/apache/kafka/kafka-clients/0.10.1.0
 # ATLAS
 WORKDIR /tmp
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
-RUN tar -xf atlas.config.tar.gz
+RUN tar -xf atlas-config.tar.gz
 RUN cp application.properties /opt/hive/conf/atlas-application.properties
 
 COPY conf/slaves /opt/hadoop/etc/hadoop
+
+# BEELINE
+WORKDIR /opt/hive-aux-libs
+RUN wget http://central.maven.org/maven2/com/esotericsoftware/minlog/minlog/1.2/minlog-1.2.jar
+RUN wget http://central.maven.org/maven2/org/objenesis/objenesis/1.2/objenesis-1.2.jar
+RUN wget http://central.maven.org/maven2/com/esotericsoftware/reflectasm/reflectasm/1.07/reflectasm-1.07-shaded.jar
 
 # Set PATH
 ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin
