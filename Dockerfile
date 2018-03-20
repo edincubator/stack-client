@@ -37,6 +37,9 @@ RUN wget https://archive.apache.org/dist/hive/hive-1.2.1/apache-hive-1.2.1-bin.t
 # TEZ
 RUN wget http://mirror.nohup.it/apache/tez/0.7.1/apache-tez-0.7.1-bin.tar.gz
 
+# HBASE
+RUN wget http://archive.apache.org/dist/hbase/1.1.2/hbase-1.1.2-bin.tar.gz
+
 # Install components
 # HADOOP
 RUN tar -xf /tmp/hadoop-2.7.3.tar.gz
@@ -61,6 +64,11 @@ RUN ln -s /opt/apache-hive-1.2.1-bin /opt/hive
 RUN tar -xf /tmp/apache-tez-0.7.1-bin.tar.gz
 RUN mv /tmp/apache-tez-0.7.1-bin /opt/apache-tez-0.7.1-bin
 RUN ln -s /opt/apache-tez-0.7.1-bin /opt/tez 
+
+# HBASE
+RUN tar -xf /tmp/hbase-1.1.2-bin.tar.gz
+RUN mv /tmp/hbase-1.1.2 /opt/hbase-1.1.2
+RUN ln -s /opt/hbase-1.1.2 /opt/hbase 
 
 # Download configurations
 # WARNING: REPLACE BY REAL HOST
@@ -103,6 +111,11 @@ RUN tar -xf tez-config.tar.gz
 RUN mkdir /opt/tez/conf
 RUN cp tez-site.xml /opt/tez/conf/tez-site.xml
 
+RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/HBASE/components/HBASE_CLIENT?format=client_config_tar -o hbase-config.tar.gz
+RUN tar -xf hbase-config.tar.gz
+RUN cp hbase-site.xml /opt/hbase/conf/hbase-site.xml
+RUN cp hbase-policy.xml /opt/hbase/conf/hbase-policy.xml
+
 # HIVE aux libraries
 # ATLAS
 RUN mkdir /opt/hive-aux-libs
@@ -132,7 +145,7 @@ RUN wget http://central.maven.org/maven2/org/objenesis/objenesis/1.2/objenesis-1
 RUN wget http://central.maven.org/maven2/com/esotericsoftware/reflectasm/reflectasm/1.07/reflectasm-1.07-shaded.jar
 
 # Set PATH
-ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin
+ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin:/opt/hbase/bin
 
 
 RUN rm -rf /tmp/*
