@@ -5,7 +5,7 @@ ARG AMBARI_USER
 ARG AMBARI_PASSWORD
 ARG AMBARI_HOST
 
-RUN yum update -y && yum install -y krb5-workstation wget which
+RUN yum update -y && yum install -y krb5-workstation wget which maven
 
 COPY conf/krb5.conf /etc/krb5.conf
 
@@ -40,6 +40,9 @@ RUN wget http://mirror.nohup.it/apache/tez/0.7.1/apache-tez-0.7.1-bin.tar.gz
 # HBASE
 RUN wget http://archive.apache.org/dist/hbase/1.1.2/hbase-1.1.2-bin.tar.gz
 
+# OOZIE
+RUN wget http://archive.apache.org/dist/oozie/4.3.1/oozie-4.3.1.tar.gz
+
 # Install components
 # HADOOP
 RUN tar -xf /tmp/hadoop-2.7.3.tar.gz
@@ -69,6 +72,14 @@ RUN ln -s /opt/apache-tez-0.7.1-bin /opt/tez
 RUN tar -xf /tmp/hbase-1.1.2-bin.tar.gz
 RUN mv /tmp/hbase-1.1.2 /opt/hbase-1.1.2
 RUN ln -s /opt/hbase-1.1.2 /opt/hbase 
+
+# OOZIE
+RUN tar -xf /tmp/oozie-4.3.1.tar.gz
+RUN /tmp/oozie-4.3.1/bin/mkdistro.sh -DskipTests -Dhadoop.version=2.7.3 -Dhive.version=1.2.1
+RUN cp /tmp/oozie-4.3.1/client/target/oozie-client-4.3.1-client.tar.gz /tmp/oozie-client-4.3.1-client.tar.gz
+RUN tar -xf /tmp/oozie-client-4.3.1-client.tar.gz
+RUN mv /tmp/oozie-client-4.3.1 /opt/oozie-client-4.3.1
+RUN ln -s /opt/oozie-client-4.3.1 /opt/oozie
 
 # Download configurations
 # WARNING: REPLACE BY REAL HOST
@@ -145,7 +156,7 @@ RUN wget http://central.maven.org/maven2/org/objenesis/objenesis/1.2/objenesis-1
 RUN wget http://central.maven.org/maven2/com/esotericsoftware/reflectasm/reflectasm/1.07/reflectasm-1.07-shaded.jar
 
 # Set PATH
-ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin:/opt/hbase/bin
+ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin:/opt/hbase/bin:/opt/oozie/bin
 
 
 RUN rm -rf /tmp/*
