@@ -138,8 +138,22 @@ RUN tar -xf /tmp/oozie-client-4.3.1-client.tar.gz
 RUN mv /tmp/oozie-client-4.3.1 /opt/oozie-client-4.3.1
 RUN ln -s /opt/oozie-client-4.3.1 /opt/oozie
 
+# PIG
+# Download
+RUN wget http://mirror.nohup.it/apache/pig/pig-0.16.0/pig-0.16.0.tar.gz
+# Install
+RUN tar -xf pig-0.16.0.tar.gz
+RUN mv /tmp/pig-0.16.0 /opt/pig-0.16.0
+RUN ln -s /opt/pig-0.16.0/ /opt/pig
+
+# KAFKA
+RUN wget -nv http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.4.0/hdp.repo -O /etc/yum.repos.d/hortonworks.repo
+RUN yum install -y kafka
+COPY conf/kafka_jaas.conf /usr/hdp/current/kafka-broker/config/kafka_jaas.conf
+ENV KAFKA_KERBEROS_PARAMS "-Djavax.security.auth.useSubjectCredsOnly=false -Djava.security.auth.login.config=/usr/hdp/current/kafka-broker/config/kafka_jaas.conf"
+
 # Set PATH
-ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin:/opt/hbase/bin:/opt/oozie/bin
+ENV PATH $PATH:/opt/hadoop/bin:/opt/spark2/bin:/opt/hive/bin:/opt/hbase/bin:/opt/oozie/bin:/opt/pig/bin:/usr/hdp/current/kafka-broker/bin
 
 # Clean /tmp
 RUN rm -rf /tmp/*
