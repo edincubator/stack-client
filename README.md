@@ -15,5 +15,5 @@ has clients installed and configured for working with the following tools:
 
 For building the image, the following command should be executed:
 ```
-docker build --build-arg AMBARI_USER=ambariuser --build-arg AMBARI_PASSWORD=ambaripassword --build-arg AMBARI_HOST=ambari-host:ambari-port -t edincubator/slack-client .
+docker build --build-arg AMBARI_USER=ambariuser --build-arg AMBARI_PASSWORD=ambaripassword --build-arg AMBARI_HOST=ambari-host:ambari-port -t edincubator/stack-client .
 ```
