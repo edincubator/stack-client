@@ -61,7 +61,7 @@ RUN cp hive-site.xml /usr/hdp/current/hive-client/conf
 # ATLAS
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
 RUN tar -xf atlas-config.tar.gz
-RUN cp application.properties /opt/hive/conf/atlas-application.properties
+RUN cp application.properties /usr/hdp/current/hive-client/conf
 # # Aux libraries
 # # Atlas
 # RUN mkdir /opt/hive-aux-libs
