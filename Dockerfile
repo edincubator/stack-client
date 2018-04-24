@@ -16,14 +16,14 @@ WORKDIR /tmp
 
 # Set environment variables
 ENV JAVA_HOME /usr/lib/jvm/java
-ENV KAFKA_KERBEROS_PARAMS "-Djavax.security.auth.useSubjectCredsOnly=false -Djava.security.auth.login.config=/usr/hdp/current/kafka-broker/config/kafka_jaas.conf"
+ENV KAFKA_KERBEROS_PARAMS "-Djavax.security.auth.useSubjectCredsOnly=false -Djava.security.auth.login.config=/usr/hdp/current/kafka-broker/config/kafka_client_jaas.conf"
 # ENV HDP_VERSION 2.6.4.0-91
 # ENV HADOOP_OPTS "-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 # ENV HADOOP_CONF_DIR /opt/hadoop/etc/hadoop/
 # ENV YARN_CONF_DIR /opt/hadoop/etc/hadoop/
 # ENV TEZ_CONF_DIR /opt/tez/conf
 # ENV TEZ_JARS /opt/tez
-# ENV HADOOP_CLASSPATH ${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*
+ENV HADOOP_CLASSPATH /usr/hdp/current/hbase-client/lib/*:/usr/hdp/current/hbase-client/conf/
 
 # Configure
 ## HDFS
