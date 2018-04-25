@@ -8,7 +8,7 @@ ARG AMBARI_HOST
 RUN yum update -y && yum install -y krb5-workstation wget which maven vim
 
 RUN wget -nv http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.6.4.0/hdp.repo -O /etc/yum.repos.d/hortonworks.repo
-RUN yum install -y hadoop-client spark2 hive-server2 hbase oozie-client kafka
+RUN yum install -y hadoop-client spark2 spark2-python hive-server2 hbase oozie-client kafka
 
 COPY conf/krb5.conf /etc/krb5.conf
 
@@ -16,14 +16,14 @@ WORKDIR /tmp
 
 # Set environment variables
 ENV JAVA_HOME /usr/lib/jvm/java
-ENV KAFKA_KERBEROS_PARAMS "-Djavax.security.auth.useSubjectCredsOnly=false -Djava.security.auth.login.config=/usr/hdp/current/kafka-broker/config/kafka_jaas.conf"
+ENV KAFKA_KERBEROS_PARAMS "-Djavax.security.auth.useSubjectCredsOnly=false -Djava.security.auth.login.config=/usr/hdp/current/kafka-broker/config/kafka_client_jaas.conf"
 # ENV HDP_VERSION 2.6.4.0-91
 # ENV HADOOP_OPTS "-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 # ENV HADOOP_CONF_DIR /opt/hadoop/etc/hadoop/
 # ENV YARN_CONF_DIR /opt/hadoop/etc/hadoop/
 # ENV TEZ_CONF_DIR /opt/tez/conf
 # ENV TEZ_JARS /opt/tez
-# ENV HADOOP_CLASSPATH ${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*
+ENV HADOOP_CLASSPATH /usr/hdp/current/hbase-client/lib/*:/usr/hdp/current/hbase-client/conf/
 
 # Configure
 ## HDFS
@@ -61,7 +61,7 @@ RUN cp hive-site.xml /usr/hdp/current/hive-client/conf
 # ATLAS
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
 RUN tar -xf atlas-config.tar.gz
-RUN cp application.properties /opt/hive/conf/atlas-application.properties
+RUN cp application.properties /usr/hdp/current/hive-client/conf
 # # Aux libraries
 # # Atlas
 # RUN mkdir /opt/hive-aux-libs
