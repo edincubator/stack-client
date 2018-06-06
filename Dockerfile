@@ -50,9 +50,9 @@ RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET
 RUN tar -xf hive-config.tar.gz
 RUN cp hive-site.xml /usr/hdp/current/hive-client/conf
 # ATLAS
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
-RUN tar -xf atlas-config.tar.gz
-RUN cp application.properties /usr/hdp/current/hive-client/conf
+# RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
+# RUN tar -xf atlas-config.tar.gz
+# RUN cp application.properties /usr/hdp/current/hive-client/conf
 
 ## TEZ
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/EDI_test/services/TEZ/components/TEZ_CLIENT?format=client_config_tar -o tez-config.tar.gz
