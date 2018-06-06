@@ -70,3 +70,6 @@ COPY conf/kafka_jaas.conf /usr/hdp/current/kafka-broker/config/kafka_jaas.conf
 
 # Clean /tmp
 RUN rm -rf /tmp/*
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT /entrypoint.sh
