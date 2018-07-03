@@ -5,13 +5,18 @@ ARG AMBARI_USER
 ARG AMBARI_PASSWORD
 ARG AMBARI_HOST
 ARG CLUSTER_NAME
+ARG KERBEROS_REALM
+ARG KADM_SERVER
+ARG KDC_SERVER
 
 RUN yum update -y && yum install -y krb5-workstation wget which maven vim
 
 RUN wget -nv http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.5.0/hdp.repo -O /etc/yum.repos.d/hortonworks.repo
 RUN yum install -y hadoop-client spark2 spark2-python hive-server2 hbase oozie-client kafka
 
-COPY conf/krb5.conf /etc/krb5.conf
+COPY conf/krb5.conf.tmpl /tmp/krb5.conf.tmpl
+
+RUN sed -e "s/\${KERBEROS_REALM}/$KERBEROS_REALM/" -e "s/\${KADM_SERVER}/$KADM_SERVER/" -e "s/\${KDC_SERVER}/$KDC_SERVER/" /tmp/krb5.conf.tmpl > /etc/krb5.conf
 
 WORKDIR /tmp
 

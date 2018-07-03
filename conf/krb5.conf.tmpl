@@ -1,7 +1,7 @@
 [libdefaults]
   renew_lifetime = 7d
   forwardable = true
-  default_realm = GAUSS.RES.ENG.IT
+  default_realm = ${KERBEROS_REALM}
   ticket_lifetime = 24h
   dns_lookup_realm = false
   dns_lookup_kdc = false
@@ -15,7 +15,7 @@
   kdc = FILE:/var/log/krb5kdc.log
 
 [realms]
-  GAUSS.RES.ENG.IT = {
-    admin_server = gauss.res.eng.it
-    kdc = gauss.res.eng.it
+  ${KERBEROS_REALM} = {
+    admin_server = ${KADM_SERVER}
+    kdc = ${KDC_SERVER}
   }
