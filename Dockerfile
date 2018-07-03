@@ -8,6 +8,7 @@ ARG CLUSTER_NAME
 ARG KERBEROS_REALM
 ARG KADM_SERVER
 ARG KDC_SERVER
+ARG MASTER_HOST
 
 RUN yum update -y && yum install -y krb5-workstation wget which maven vim
 
@@ -72,7 +73,8 @@ RUN cp hbase-site.xml /usr/hdp/current/hbase-client/conf
 RUN cp hbase-policy.xml /usr/hdp/current/hbase-client/conf
 
 ## KAFKA
-COPY conf/kafka_jaas.conf /usr/hdp/current/kafka-broker/config/kafka_jaas.conf
+COPY conf/kafka_jaas.conf.tmpl /tmp/kafka_jaas.conf.tmpl
+RUN sed -e "s/\${KERBEROS_REALM}/$KERBEROS_REALM/" -e "s/\${MASTER_HOST}/$MASTER_HOST/" /tmp/kafka_jaas.conf.tmpl > /usr/hdp/current/kafka-broker/config/kafka_jaas.conf
 
 # Clean /tmp
 RUN rm -rf /tmp/*
