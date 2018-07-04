@@ -33,7 +33,11 @@ RUN tar -xf hdfs-config.tar.gz
 RUN cp core-site.xml /usr/hdp/current/hadoop-client/conf
 RUN cp hdfs-site.xml /usr/hdp/current/hadoop-client/conf
 COPY conf/topology_script.py /usr/hdp/current/hadoop-client/conf
-COPY conf/slaves /usr/hdp/current/hadoop-client/conf
+COPY get_slaves.py /tmp/get_slaves.py
+# RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HDFS/components/DATANODE
+RUN python /tmp/get_slaves.py $AMBARI_USER $AMBARI_PASSWORD $AMBARI_HOST $CLUSTER_NAME
+# COPY conf/slaves /usr/hdp/current/hadoop-client/conf
+
 
 ## YARN
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/YARN/components/YARN_CLIENT?format=client_config_tar -o yarn-config.tar.gz
