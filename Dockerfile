@@ -34,9 +34,7 @@ RUN cp core-site.xml /usr/hdp/current/hadoop-client/conf
 RUN cp hdfs-site.xml /usr/hdp/current/hadoop-client/conf
 COPY conf/topology_script.py /usr/hdp/current/hadoop-client/conf
 COPY get_slaves.py /tmp/get_slaves.py
-# RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HDFS/components/DATANODE
 RUN python /tmp/get_slaves.py $AMBARI_USER $AMBARI_PASSWORD $AMBARI_HOST $CLUSTER_NAME
-# COPY conf/slaves /usr/hdp/current/hadoop-client/conf
 
 
 ## YARN
@@ -51,7 +49,6 @@ RUN tar -xf mapred-config.tar.gz
 RUN cp mapred-site.xml /usr/hdp/current/hadoop-client/conf
 
 ## SPARK2
-# COPY conf/java-opts /opt/spark2/conf/java-opts
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/SPARK2/components/SPARK2_CLIENT?format=client_config_tar -o spark-config.tar.gz
 RUN tar -xf spark-config.tar.gz
 RUN cp spark-defaults.conf /usr/hdp/current/spark2-client/conf
@@ -60,10 +57,6 @@ RUN cp spark-defaults.conf /usr/hdp/current/spark2-client/conf
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HIVE/components/HIVE_CLIENT?format=client_config_tar -o hive-config.tar.gz
 RUN tar -xf hive-config.tar.gz
 RUN cp hive-site.xml /usr/hdp/current/hive-client/conf
-# ATLAS
-# RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET http://$AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/ATLAS/components/ATLAS_CLIENT?format=client_config_tar -o atlas-config.tar.gz
-# RUN tar -xf atlas-config.tar.gz
-# RUN cp application.properties /usr/hdp/current/hive-client/conf
 
 ## TEZ
 RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/TEZ/components/TEZ_CLIENT?format=client_config_tar -o tez-config.tar.gz
