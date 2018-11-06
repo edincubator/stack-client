@@ -78,5 +78,4 @@ RUN rm -rf /tmp/*
 
 RUN chmod a+wrx /tmp
 
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT /entrypoint.sh
+WORKDIR /workdir
