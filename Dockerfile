@@ -10,7 +10,9 @@ ARG KADM_SERVER
 ARG KDC_SERVER
 ARG MASTER_HOST
 
-RUN yum update -y && yum install -y krb5-workstation wget which maven vim
+RUN yum update -y && yum install -y krb5-workstation wget which maven vim python-pip python3
+
+RUN pip install mrjob
 
 RUN wget -nv http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.5.0/hdp.repo -O /etc/yum.repos.d/hortonworks.repo
 RUN yum install -y hadoop-client spark2 spark2-python hive-server2 hbase oozie-client kafka phoenix-queryserver
