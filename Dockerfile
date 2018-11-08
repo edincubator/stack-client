@@ -10,7 +10,7 @@ ARG KADM_SERVER
 ARG KDC_SERVER
 ARG MASTER_HOST
 
-RUN yum update -y && yum install -y krb5-workstation wget which maven vim python-pip python3
+RUN yum update -y && yum install -y krb5-workstation wget which maven vim python2-pip python3
 
 RUN pip install mrjob
 
