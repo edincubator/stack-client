@@ -1,23 +1,25 @@
+# syntax=docker/dockerfile:1.0.0-experimental
 FROM centos:7
 
 # Build arguments
-ARG AMBARI_USER
-ARG AMBARI_PASSWORD
-ARG AMBARI_HOST
-ARG CLUSTER_NAME
-ARG KERBEROS_REALM
-ARG KADM_SERVER
-ARG KDC_SERVER
-ARG MASTER_HOST
+# ARG AMBARI_USER
+# ARG AMBARI_PASSWORD
+# ARG AMBARI_HOST
+# ARG CLUSTER_NAME
+# ARG KERBEROS_REALM
+# ARG KADM_SERVER
+# ARG KDC_SERVER
+# ARG MASTER_HOST
 
-RUN yum update -y && yum install -y krb5-workstation wget which maven vim
+RUN yum update -y && yum install -y krb5-workstation wget which maven vim && yum clean all
 
 RUN wget -nv http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.6.5.0/hdp.repo -O /etc/yum.repos.d/hortonworks.repo
-RUN yum install -y hadoop-client spark2 spark2-python hive-server2 hbase oozie-client kafka phoenix-queryserver
+RUN yum install -y hadoop-client spark2 spark2-python hive-server2 hbase oozie-client kafka phoenix-queryserver && yum clean all
 
-COPY conf/krb5.conf.tmpl /tmp/krb5.conf.tmpl
+ADD conf/krb5.conf.tmpl /tmp/krb5.conf.tmpl
+ADD configure_krb.py /tmp/configure_krb.py
 
-RUN sed -e "s/\${KERBEROS_REALM}/$KERBEROS_REALM/" -e "s/\${KADM_SERVER}/$KADM_SERVER/" -e "s/\${KDC_SERVER}/$KDC_SERVER/" /tmp/krb5.conf.tmpl > /etc/krb5.conf
+RUN --mount=type=secret,id=KERBEROS_REALM --mount=type=secret,id=KADM_SERVER --mount=type=secret,id=KDC_SERVER python /tmp/configure_krb.py
 
 WORKDIR /tmp
 
@@ -28,50 +30,53 @@ ENV HADOOP_CLASSPATH /usr/hdp/current/hbase-client/lib/*:/usr/hdp/current/hbase-
 
 # Configure
 ## HDFS
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HDFS/components/HDFS_CLIENT?format=client_config_tar -o hdfs-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/HDFS/components/HDFS_CLIENT?format=client_config_tar -o hdfs-config.tar.gz
 RUN tar -xf hdfs-config.tar.gz
 RUN cp core-site.xml /usr/hdp/current/hadoop-client/conf
 RUN cp hdfs-site.xml /usr/hdp/current/hadoop-client/conf
-COPY conf/topology_script.py /usr/hdp/current/hadoop-client/conf
-COPY get_slaves.py /tmp/get_slaves.py
-RUN python /tmp/get_slaves.py $AMBARI_USER $AMBARI_PASSWORD $AMBARI_HOST $CLUSTER_NAME
+RUN ls /usr/hdp/current/hadoop-client/conf
+ADD conf/topology_script.py /tmp/topology_script.py
+RUN cp /tmp/topology_script.py /usr/hdp/current/hadoop-client/conf/topology_script.py
+ADD get_slaves.py /tmp/get_slaves.py
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME python /tmp/get_slaves.py $(cat /run/secrets/AMBARI_USER) $(cat /run/secrets/AMBARI_PASSWORD) $(cat /run/secrets/AMBARI_HOST) $(cat /run/secrets/CLUSTER_NAME)
 
 
 ## YARN
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/YARN/components/YARN_CLIENT?format=client_config_tar -o yarn-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/YARN/components/YARN_CLIENT?format=client_config_tar -o yarn-config.tar.gz
 RUN tar -xf yarn-config.tar.gz
 RUN cp capacity-scheduler.xml /usr/hdp/current/hadoop-client/conf
 RUN cp yarn-site.xml /usr/hdp/current/hadoop-client/conf
 
 ## MR2
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT?format=client_config_tar -o mapred-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT?format=client_config_tar -o mapred-config.tar.gz
 RUN tar -xf mapred-config.tar.gz
 RUN cp mapred-site.xml /usr/hdp/current/hadoop-client/conf
 
 ## SPARK2
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/SPARK2/components/SPARK2_CLIENT?format=client_config_tar -o spark-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/SPARK2/components/SPARK2_CLIENT?format=client_config_tar -o spark-config.tar.gz
 RUN tar -xf spark-config.tar.gz
 RUN cp spark-defaults.conf /usr/hdp/current/spark2-client/conf
 
 ## HIVE
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HIVE/components/HIVE_CLIENT?format=client_config_tar -o hive-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/HIVE/components/HIVE_CLIENT?format=client_config_tar -o hive-config.tar.gz
 RUN tar -xf hive-config.tar.gz
 RUN cp hive-site.xml /usr/hdp/current/hive-client/conf
 
 ## TEZ
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/TEZ/components/TEZ_CLIENT?format=client_config_tar -o tez-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/TEZ/components/TEZ_CLIENT?format=client_config_tar -o tez-config.tar.gz
 RUN tar -xf tez-config.tar.gz
 RUN cp tez-site.xml /usr/hdp/current/tez-client/conf
 
 ## HBASE
-RUN curl --user $AMBARI_USER:$AMBARI_PASSWORD -H "X-Requested-By: ambari" -X GET $AMBARI_HOST/api/v1/clusters/$CLUSTER_NAME/services/HBASE/components/HBASE_CLIENT?format=client_config_tar -o hbase-config.tar.gz
+RUN --mount=type=secret,id=AMBARI_USER --mount=type=secret,id=AMBARI_PASSWORD --mount=type=secret,id=AMBARI_HOST --mount=type=secret,id=CLUSTER_NAME curl --user $(cat /run/secrets/AMBARI_USER):$(cat /run/secrets/AMBARI_PASSWORD) -H "X-Requested-By: ambari" -X GET $(cat /run/secrets/AMBARI_HOST)/api/v1/clusters/$(cat /run/secrets/CLUSTER_NAME)/services/HBASE/components/HBASE_CLIENT?format=client_config_tar -o hbase-config.tar.gz
 RUN tar -xf hbase-config.tar.gz
 RUN cp hbase-site.xml /usr/hdp/current/hbase-client/conf
 RUN cp hbase-policy.xml /usr/hdp/current/hbase-client/conf
 
 ## KAFKA
 COPY conf/kafka_jaas.conf.tmpl /tmp/kafka_jaas.conf.tmpl
-RUN sed -e "s/\${KERBEROS_REALM}/$KERBEROS_REALM/" -e "s/\${MASTER_HOST}/$MASTER_HOST/" /tmp/kafka_jaas.conf.tmpl > /usr/hdp/current/kafka-broker/config/kafka_jaas.conf
+COPY configure_kafka.py /tmp/configure_kafka.py
+RUN --mount=type=secret,id=KERBEROS_REALM --mount=type=secret,id=MASTER_HOST python /tmp/configure_kafka.py
 
 # Clean /tmp
 RUN rm -rf /tmp/*
